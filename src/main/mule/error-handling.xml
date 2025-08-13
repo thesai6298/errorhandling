@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6acda047-1d45-4c92-b2bc-522141e0d348" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="error-handlingFlow" doc:id="5ac12c40-95fa-4006-9cbf-15cda01f7024" >
+		<http:listener doc:name="Listener" doc:id="893db0d2-97a8-4492-b309-c09c88f6d032" config-ref="HTTP_Listener_config" path="/error"/>
+		<logger level="INFO" doc:name="flow come" doc:id="c53c0409-8371-48fd-a8ce-2cde12017572" message="flow come"/>
+		<flow-ref doc:name="error-handlingFlow1" doc:id="142f67f5-4597-4ca0-a5aa-6bb776dbc2ae" name="error-handlingFlow1"/>
+		<logger level="INFO" doc:name="error continue" doc:id="85e16150-b580-4e56-b3cd-e4f389ab83c9" message="error continue"/>
+	</flow>
+	<flow name="error-handlingFlow1" doc:id="34359c39-95b8-41e8-a438-ea6ea2a4685d" >
+		<ee:transform doc:name="Transform Message" doc:id="e28e0da7-c8b3-4f79-aab4-d24617e13736">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<raise-error doc:name="Raise error" doc:id="3a1588fb-2bf9-4505-a40a-7a42b89fde1b" type="CUSTOM:YOUR_ERROR" description="custom error" />
+		<logger level="INFO" doc:name="flow continue1" doc:id="2901ca93-a6f8-4bfd-a25e-6a958aa90826" message="flow continue"/>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="9f531186-7091-418f-862d-b7e3757d987a" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="77634d26-4a56-4fdf-9527-186062a6be6a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
